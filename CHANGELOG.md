@@ -46,6 +46,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Ensured that the KPI cards would be updated on all tabs whenever the page was updated
 - **CUMULUS-2544**
   - Changed the timestamp so that the date and time is shown rather than time elapsed since last occurrence
+- **CUMULUS-2549**
+  - All columns on collections overview page are now sortable
 - **CUMULUS-2551**
   - Added a sortable column to individual granules tab so you can sort each file within the granule by size. 
 - **CUMULUS-2554**

@@ -8,6 +8,7 @@ import BatchDeleteConfirmContent from '../../components/DeleteCollection/BatchDe
 import BatchDeleteCompleteContent from '../../components/DeleteCollection/BatchDeleteCompleteContent';
 import BatchDeleteWithGranulesContent from '../../components/DeleteCollection/BatchDeleteWithGranulesContent';
 import { getPersistentQueryParams, historyPushWithQueryParams } from '../url-helper';
+import { numberSort, stringSort } from '../sortable-table';
 
 export const tableColumns = [
   {
@@ -38,36 +39,37 @@ export const tableColumns = [
   {
     Header: strings.granules,
     accessor: (row) => tally(get(row, 'stats.total')),
-    id: 'granules',
-    disableSortBy: true,
+    id: 'granules__no-sort',
+    sortMethod: (rowA, rowB, columnId) => numberSort(rowA, rowB, columnId),
     width: 100
   },
   {
     Header: 'Completed',
     accessor: (row) => tally(get(row, 'stats.completed')),
-    id: 'completed',
-    disableSortBy: true,
+    id: 'completed__no-sort',
+    sortMethod: (rowA, rowB, columnId) => numberSort(rowA, rowB, columnId),
     width: 100
   },
   {
     Header: 'Running',
     accessor: (row) => tally(get(row, 'stats.running')),
-    id: 'running',
-    disableSortBy: true,
+    id: 'running__no-sort',
+    sortMethod: (rowA, rowB, columnId) => numberSort(rowA, rowB, columnId),
     width: 100
   },
   {
     Header: 'Failed',
     accessor: (row) => tally(get(row, 'stats.failed')),
-    id: 'failed',
-    disableSortBy: true,
+    id: 'failed__no-sort',
+    sortMethod: (rowA, rowB, columnId) => numberSort(rowA, rowB, columnId),
     width: 100
   },
   {
     Header: 'MMT',
     accessor: 'MMTLink',
+    id: 'mmt__no-sort',
     Cell: ({ cell: { value } }) => (value ? <a href={value} target="_blank">MMT</a> : null), // eslint-disable-line react/prop-types
-    disableSortBy: true,
+    sortMethod: (rowA, rowB, columnId) => stringSort(rowA, rowB, columnId),
     width: 100
   },
   {

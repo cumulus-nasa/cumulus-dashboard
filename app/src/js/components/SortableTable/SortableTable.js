@@ -1,55 +1,25 @@
 import React, {
   useMemo,
   useEffect,
-  forwardRef,
-  useRef,
   useState,
   createRef
 } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import omit from 'lodash/omit';
-import { useTable, useResizeColumns, useFlexLayout, useSortBy, useRowSelect, usePagination } from 'react-table';
+import {
+  defaultOrderByFn,
+  useTable,
+  useResizeColumns,
+  useFlexLayout,
+  useSortBy,
+  useRowSelect,
+  usePagination
+} from 'react-table';
 import SimplePagination from '../Pagination/simple-pagination';
 import TableFilters from '../Table/TableFilters';
 import ListFilters from '../ListActions/ListFilters';
-
-const getColumnWidth = (rows, accessor, headerText, originalWidth) => {
-  const maxWidth = 400;
-  const magicSpacing = 10;
-  const cellLength = Math.max(
-    ...rows.map((row) => (`${row.values[accessor]}` || '').length * magicSpacing),
-    headerText.length * magicSpacing,
-    originalWidth,
-  );
-  return Math.min(maxWidth, cellLength);
-};
-
-/**
- * IndeterminateCheckbox
- * @description Component for rendering the header and column checkboxs when canSelect is true
- * Taken from react-table examples
- */
-const IndeterminateCheckbox = forwardRef(
-  ({ indeterminate, title, ...rest }, ref) => {
-    const defaultRef = useRef();
-    const resolvedRef = ref || defaultRef;
-
-    useEffect(() => {
-      resolvedRef.current.indeterminate = indeterminate;
-    }, [resolvedRef, indeterminate]);
-
-    return (
-      <input type="checkbox" ref={resolvedRef} aria-label={title} title={title} {...rest} />
-    );
-  }
-);
-
-IndeterminateCheckbox.propTypes = {
-  indeterminate: PropTypes.any,
-  onChange: PropTypes.func,
-  title: PropTypes.string,
-};
+import { checkInView, getColumnWidth, IndeterminateCheckbox, sortData } from '../../utils/sortable-table';
 
 const SortableTable = ({
   canSelect,
@@ -85,6 +55,10 @@ const SortableTable = ({
   const {
     getTableProps,
     rows,
+    flatRows,
+    allColumns,
+    orderByFn = defaultOrderByFn,
+    manualSortBy,
     prepareRow,
     headerGroups,
     state: {
@@ -102,7 +76,7 @@ const SortableTable = ({
     gotoPage,
     nextPage,
     previousPage,
-    setHiddenColumns
+    setHiddenColumns,
   } = useTable(
     {
       data,
@@ -145,6 +119,30 @@ const SortableTable = ({
   );
 
   const tableRows = page || rows;
+
+  // useMemo code modified from https://github.com/tannerlinsley/react-table/blob/master/src/plugin-hooks/useSortBy.js#L272
+  const [sortedRows] = React.useMemo(() => {
+    // we only want to do this if we're already manually sorting but have columns we want to sort client side
+    if (!manualSortBy || !sortBy.length) {
+      return [tableRows, flatRows];
+    }
+
+    const sortedFlatRows = [];
+
+    // Filter out sortBys that correspond to non existing columns
+    const availableSortBy = sortBy.filter((sort) => allColumns
+      .find((col) => (typeof col.sortMethod === 'function') && (col.id === sort.id)));
+
+    //  if we don't find any columns with a defined sortMethod, let's bail
+    if (!availableSortBy.length) {
+      return [tableRows, flatRows];
+    }
+
+    const sortedData = sortData({ allColumns, availableSortBy, orderByFn, rows: tableRows, sortedFlatRows });
+
+    return [sortedData, sortedFlatRows];
+  }, [manualSortBy, sortBy, tableRows, flatRows, allColumns, orderByFn]);
+
   const includeFilters = typeof getToggleColumnOptions !== 'function';
 
   const tableRef = createRef();
@@ -171,8 +169,9 @@ const SortableTable = ({
   }, [selectedRowIds, onSelect]);
 
   useEffect(() => {
+    const availableSortBy = sortBy.filter((sortColumn) => !sortColumn.id.includes('__no-sort'));
     if (typeof changeSortProps === 'function') {
-      changeSortProps(sortBy);
+      changeSortProps(availableSortBy);
     }
   }, [changeSortProps, sortBy]);
 
@@ -263,7 +262,6 @@ const SortableTable = ({
   }
 
   function showScrollLeftButton(event) {
-    console.log('showLeft');
     setLeftScrollButtonVisibility({ display: 'flex', opacity: leftScrollButtonVisibility.opacity });
     setTimeout(() => {
       setLeftScrollButtonVisibility({ display: 'flex', opacity: 1 });
@@ -289,30 +287,6 @@ const SortableTable = ({
       setRightScrollButtonVisibility({ display: rightScrollButtonVisibility.display, opacity: 0 });
       setRightScrollButtonVisibility({ display: 'none', opacity: 0 });
     }
-  }
-
-  function checkInView(container, element, partial) {
-    if (!container || !element) {
-      return true;
-    }
-
-    // Get container properties
-    const cLeft = container.scrollLeft;
-    const cRight = cLeft + container.clientWidth;
-
-    // Get element properties
-    const eLeft = element.offsetLeft - container.offsetLeft;
-    const eRight = eLeft + element.clientWidth;
-
-    // Check if in view
-    const isTotal = (eLeft >= cLeft && eRight <= cRight);
-    const isPartial = partial && (
-      (eLeft < cLeft && eRight > cLeft) ||
-      (eRight > cRight && eLeft < cRight)
-    );
-
-    // Return outcome
-    return (isTotal || isPartial);
   }
 
   return (
@@ -392,7 +366,7 @@ const SortableTable = ({
           </div>
         </div>
         <div className='tbody'>
-          {tableRows.map((row, i) => {
+          {sortedRows.map((row, i) => {
             prepareRow(row);
             return (
               <div className='tr' data-value={row.id} {...row.getRowProps()} key={i}>
