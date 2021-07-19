@@ -6,6 +6,7 @@ import isNil from 'lodash/isNil';
 import isEqual from 'lodash/isEqual';
 import omitBy from 'lodash/omitBy';
 import noop from 'lodash/noop';
+import isEmpty from 'lodash/isEmpty';
 import ErrorReport from '../Errors/report';
 import Loading from '../LoadingIndicator/loading-indicator';
 import Pagination from '../Pagination/pagination';
@@ -32,7 +33,8 @@ const List = ({
   groupAction,
   initialHiddenColumns = [],
   initialSortId,
-  list,
+  legend,
+  list = {},
   onSelect,
   query,
   queryParams,
@@ -41,7 +43,7 @@ const List = ({
   toggleColumnOptionsAction,
 }) => {
   const { data: listData, error: listError, inflight: listInflight, meta } = list;
-  const { count, limit } = meta;
+  const { count, limit } = meta || {};
   const tableData = data || listData;
 
   const [selected, setSelected] = useState([]);
@@ -74,12 +76,14 @@ const List = ({
       ...prevQueryConfig,
       ...getQueryConfig({})
     }));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(query)]);
 
   useEffect(() => {
     // Remove parameters with null or undefined values
     const newParams = omitBy(list.params, isNil);
+
+    if (isEmpty(list)) return;
 
     if (!isEqual(newParams, params)) {
       setParams(newParams);
@@ -88,12 +92,12 @@ const List = ({
         ...getQueryConfig({})
       }));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(list.params), JSON.stringify(params)]);
 
   useEffect(() => {
     setClearSelected(true);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(queryFilters)]);
 
   useEffect(() => {
@@ -191,6 +195,7 @@ const List = ({
         {children}
         <ListFilters>
           <TableFilters columns={tableColumns} {...toggleColumnOptions} initialHiddenColumns={initialHiddenColumns} />
+          {legend}
         </ListFilters>
       </ListActions>
       <div className="list-view">
@@ -209,7 +214,7 @@ const List = ({
               selected={selected}
             />
           )}
-          <Suspense fallback={<Loading/>}>
+          <Suspense fallback={<Loading />}>
             <SortableTable
               tableColumns={tableColumns}
               data={tableData}
@@ -253,6 +258,7 @@ List.propTypes = {
   }),
   initialHiddenColumns: PropTypes.array,
   initialSortId: PropTypes.string,
+  legend: PropTypes.node,
   list: PropTypes.object,
   query: PropTypes.object,
   rowId: PropTypes.any,

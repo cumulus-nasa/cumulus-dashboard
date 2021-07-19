@@ -35,9 +35,9 @@ const IndeterminateCheckbox = forwardRef(
     const defaultRef = useRef();
     const resolvedRef = ref || defaultRef;
 
-    useEffect(() => {
-      resolvedRef.current.indeterminate = indeterminate;
-    }, [resolvedRef, indeterminate]);
+    // useEffect(() => {
+    //   resolvedRef.current.indeterminate = indeterminate;
+    // }, [resolvedRef, indeterminate]);
 
     return (
       <input type="checkbox" ref={resolvedRef} aria-label={title} title={title} {...rest} />

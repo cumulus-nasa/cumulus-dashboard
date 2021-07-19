@@ -4,8 +4,9 @@ import groupBy from 'lodash/groupBy';
 import {
   searchReconciliationReport,
   clearReconciliationSearch,
+  listGranules
 } from '../../actions';
-import SortableTable from '../SortableTable/SortableTable';
+import List from '../Table/Table';
 import Search from '../Search/search';
 import ReportHeading from './report-heading';
 import { handleDownloadUrlClick } from '../../utils/download-file';
@@ -14,11 +15,14 @@ import { getFilesSummary, getGranuleFilesSummary } from './reshape-report';
 import { getCollectionId } from '../../utils/format';
 
 const GnfReport = ({
+  bulkActions,
   filterString,
+  groupAction,
   legend,
+  onSelect,
   recordData,
   reportName,
-  reportUrl,
+  reportUrl
 }) => {
   const {
     filesInCumulus,
@@ -109,12 +113,17 @@ const GnfReport = ({
             placeholder="Search"
           />
         </div>
-        <SortableTable
+        <List
+          action={listGranules}
+          bulkActions={bulkActions}
           data={combinedGranules}
-          tableColumns={tableColumnsGnf}
-          shouldUsePagination={true}
+          groupAction={groupAction}
           initialHiddenColumns={['']}
           legend={legend}
+          onSelect={onSelect}
+          rowId="granuleId"
+          shouldUsePagination={true}
+          tableColumns={tableColumnsGnf}
         />
       </section>
     </div>
@@ -122,11 +131,17 @@ const GnfReport = ({
 };
 
 GnfReport.propTypes = {
+  bulkActions: PropTypes.array,
   filterString: PropTypes.string,
+  groupAction: PropTypes.shape({
+    title: PropTypes.string,
+    description: PropTypes.string,
+  }),
   legend: PropTypes.node,
+  onSelect: PropTypes.func,
   recordData: PropTypes.object,
   reportName: PropTypes.string,
-  reportUrl: PropTypes.string,
+  reportUrl: PropTypes.string
 };
 
 export default GnfReport;

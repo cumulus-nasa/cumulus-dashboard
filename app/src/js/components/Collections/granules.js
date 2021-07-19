@@ -75,6 +75,7 @@ const CollectionGranules = ({
 
   useEffect(() => {
     setWorkflow(workflowOptions[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(workflowOptions)]);
 
   function generateQuery() {
@@ -104,7 +105,7 @@ const CollectionGranules = ({
     return bulkActions(granules, actionConfig);
   }
 
-  function selectWorkflow(selector, selectedWorkflow) {
+  function selectWorkflow(selectedWorkflow) {
     setWorkflow(selectedWorkflow);
   }
 

@@ -1,7 +1,7 @@
 import { get } from 'object-path';
 import { Helmet } from 'react-helmet';
 import PropTypes from 'prop-types';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { Link, withRouter } from 'react-router-dom';
 import {
@@ -15,6 +15,9 @@ import {
   searchGranules,
   listCollections,
   getOptionsProviderName,
+  listWorkflows,
+  applyWorkflowToGranule,
+  applyRecoveryWorkflowToGranule,
 } from '../../actions';
 import {
   collectionName as collectionLabelForId,
@@ -27,19 +30,25 @@ import {
 import statusOptions from '../../utils/status';
 import { getPersistentQueryParams, historyPushWithQueryParams } from '../../utils/url-helper';
 import {
-  reingestAction,
+  bulkActions,
+  defaultHiddenColumns,
+  defaultWorkflowMeta,
+  executeDialog,
+  groupAction,
+  recoverAction,
   tableColumns,
 } from '../../utils/table-config/granules';
 import Breadcrumbs from '../Breadcrumbs/Breadcrumbs';
 import DeleteCollection from '../DeleteCollection/DeleteCollection';
 import Dropdown from '../DropDown/dropdown';
 import AsyncDropdown from '../DropDown/async-dropdown';
-import Bulk from '../Granules/bulk';
 import ListFilters from '../ListActions/ListFilters';
 import { strings } from '../locale';
 import Overview from '../Overview/overview';
 import Search from '../Search/search';
 import List from '../Table/Table';
+import { workflowOptionNames } from '../../selectors';
+
 const breadcrumbConfig = [
   {
     label: 'Dashboard Home',
@@ -63,6 +72,7 @@ const CollectionOverview = ({
   match,
   providers,
   queryParams,
+  workflowOptions
 }) => {
   const { params } = match;
   const { deleted: deletedCollections, map: collectionsMap } = collections;
@@ -73,8 +83,10 @@ const CollectionOverview = ({
   const collectionId = getCollectionId({ name: collectionName, version: decodedVersion });
   const record = collectionsMap[collectionId];
   const deleteStatus = get(deletedCollections, [collectionId, 'status']);
-  const hasGranules =
-      get(collectionsMap[collectionId], 'data.stats.total', 0) > 0;
+  const hasGranules = get(collectionsMap[collectionId], 'data.stats.total', 0) > 0;
+  const [workflow, setWorkflow] = useState(workflowOptions[0]);
+  const [workflowMeta, setWorkflowMeta] = useState(defaultWorkflowMeta);
+  const [selected, setSelected] = useState([]);
 
   useEffect(() => {
     dispatch(listCollections());
@@ -86,26 +98,65 @@ const CollectionOverview = ({
     historyPushWithQueryParams(collectionHrefFromId(newCollectionId));
   }
 
-  function generateBulkActions() {
-    return [
-      reingestAction(granules),
-      {
-        Component: (
-          <Bulk
-            element="a"
-            className="button button__bulkgranules button--green button--small form-group__element link--no-underline"
-            confirmAction={true}
-          />
-        ),
-      },
-    ];
-  }
+  useEffect(() => {
+    dispatch(listWorkflows());
+  }, [dispatch]);
+
+  useEffect(() => {
+    setWorkflow(workflowOptions[0]);
+  }, [workflowOptions]);
 
   function generateQuery() {
     return {
       ...queryParams,
       collectionId,
     };
+  }
+
+  function generateBulkActions() {
+    const config = {
+      execute: {
+        options: getExecuteOptions(),
+        action: applyWorkflow,
+      },
+      recover: {
+        options: getExecuteOptions(),
+        action: applyRecoveryWorkflow
+      }
+    };
+    const selectedGranules = selected.map((id) => granules.list.data.find((g) => id === g.granuleId));
+    let actions = bulkActions(granules, config, selectedGranules);
+    if (config.enableRecovery) {
+      actions = actions.concat(recoverAction(granules, config));
+    }
+    return actions;
+  }
+
+  function selectWorkflow(selector, selectedWorkflow) {
+    setWorkflow(selectedWorkflow);
+  }
+
+  function applyWorkflow(granuleId) {
+    const { meta } = JSON.parse(workflowMeta);
+    setWorkflowMeta(defaultWorkflowMeta);
+    return applyWorkflowToGranule(granuleId, workflow, meta);
+  }
+
+  function applyRecoveryWorkflow(granuleId) {
+    return applyRecoveryWorkflowToGranule(granuleId);
+  }
+
+  function getExecuteOptions() {
+    return [
+      executeDialog({
+        selectHandler: selectWorkflow,
+        label: 'workflow',
+        value: workflow,
+        options: workflowOptions,
+        initialMeta: workflowMeta,
+        metaHandler: setWorkflowMeta,
+      }),
+    ];
   }
 
   function deleteMe() {
@@ -132,6 +183,10 @@ const CollectionOverview = ({
       get(collections.map, [collectionId, 'error']),
       get(collections.deleted, [collectionId, 'error']),
     ].filter(Boolean);
+  } /* Look at incorporating granule action errors maybe? */
+
+  function updateSelection(selection) {
+    setSelected(selection);
   }
 
   return (
@@ -151,12 +206,12 @@ const CollectionOverview = ({
                   className='collection-chooser'
                   label={'Collection'}
                   title={'Collections Dropdown'}
-                  onChange = {changeCollection}
+                  onChange={changeCollection}
                   onInputChange={onInputChange}
-                  value = {collectionId}
-                  defaultOptions = {true}
+                  value={collectionId}
+                  defaultOptions={true}
                   id={'collection-chooser'}
-                  cacheOptions = {true}
+                  cacheOptions={true}
                 />
               </div>
             </li>
@@ -246,10 +301,13 @@ const CollectionOverview = ({
           tableColumns={tableColumns}
           query={generateQuery()}
           bulkActions={generateBulkActions()}
+          groupAction={groupAction}
           rowId="granuleId"
+          initialHiddenColumns={defaultHiddenColumns}
           initialSortId="timestamp"
           filterAction={filterGranules}
           filterClear={clearGranulesFilter}
+          onSelect={updateSelection}
         >
           <Search
             action={searchGranules}
@@ -296,7 +354,8 @@ CollectionOverview.propTypes = {
   granules: PropTypes.object,
   match: PropTypes.object,
   queryParams: PropTypes.object,
-  providers: PropTypes.object
+  providers: PropTypes.object,
+  workflowOptions: PropTypes.array
 };
 
 export default withRouter(
@@ -304,6 +363,7 @@ export default withRouter(
     collections: state.collections,
     datepicker: state.datepicker,
     granules: state.granules,
-    providers: state.providers
+    providers: state.providers,
+    workflowOptions: workflowOptionNames(state)
   }))(CollectionOverview)
 );
