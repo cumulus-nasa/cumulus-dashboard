@@ -758,6 +758,15 @@ export const listExecutions = (options) => (dispatch, getState) => {
   });
 };
 
+export const listExecutionsByGranule = (payload) => ({
+    [CALL_API]: {
+      type: types.EXECUTIONS,
+      method: 'POST',
+      path: 'executions/search-by-granules',
+      data: payload
+    }
+});
+
 export const filterExecutions = (param) => ({ type: types.FILTER_EXECUTIONS, param });
 export const clearExecutionsFilter = (paramKey) => ({ type: types.CLEAR_EXECUTIONS_FILTER, paramKey });
 export const searchExecutions = (infix) => ({ type: types.SEARCH_EXECUTIONS, infix });

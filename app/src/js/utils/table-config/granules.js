@@ -68,6 +68,16 @@ export const tableColumns = [
     Cell: ({ cell: { value } }) => <CopyCellPopover cellContent={collectionLink(value)} id={`collectionId-${value}-popover`} popoverContent={collectionLink(value)} value={value} />,
   },
   {
+    Header: 'Executions List',
+    accessor: 'granuleId',
+    Cell: ({ row: { original: {collectionId, granuleId} } }) => (
+      <Link to={(location) => ({ pathname: `/executions/executions-list/${encodeURIComponent(collectionId)}/${encodeURIComponent(path.basename(granuleId))}` })}>link</Link>
+    ),
+    disableSortBy: true,
+    width: 90,
+    id: 'execution-list'
+  },
+  {
     Header: 'Provider',
     accessor: 'provider',
     Cell: ({ cell: { value } }) => providerLink(value)
