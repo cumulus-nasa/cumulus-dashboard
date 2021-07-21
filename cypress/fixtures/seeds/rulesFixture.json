@@ -26,6 +26,84 @@
       },
       "state": "ENABLED",
       "updatedAt": 1538105473704
+    },
+    {
+      "name": "MOD09GK_TEST_kinesisRul2e",
+      "createdAt": 1538105473704,
+      "workflow": "HelloWorldWorkflow",
+      "provider": "PODAAC_SWOT",
+      "meta": {
+        "cnmResponseStream": "test-src-integration-cnmResponseStream"
+      },
+      "rule": {
+        "type": "onetime",
+        "value": "none"
+      },
+      "collection": {
+        "name": "MOD09GK",
+        "version": "006"
+      },
+      "state": "ENABLED",
+      "updatedAt": 1538105473704
+    }
+    ,
+    {
+      "name": "MOD09GK_TEST_kinesisRul3e",
+      "createdAt": 1538105473704,
+      "workflow": "HelloWorldWorkflow",
+      "provider": "PODAAC_SWOT",
+      "meta": {
+        "cnmResponseStream": "test-src-integration-cnmResponseStream"
+      },
+      "rule": {
+        "type": "onetime",
+        "value": "none"
+      },
+      "collection": {
+        "name": "MOD09GK",
+        "version": "006"
+      },
+      "state": "ENABLED",
+      "updatedAt": 1538105473704
+    },
+    {
+      "name": "MOD09GK_TEST_kinesisRul4e",
+      "createdAt": 1538105473704,
+      "workflow": "HelloWorldWorkflow",
+      "provider": "PODAAC_SWOT",
+      "meta": {
+        "cnmResponseStream": "test-src-integration-cnmResponseStream"
+      },
+      "rule": {
+        "type": "onetime",
+        "value": "none"
+      },
+      "collection": {
+        "name": "MOD09GK",
+        "version": "006"
+      },
+      "state": "ENABLED",
+      "updatedAt": 1538105473704
+    }
+    ,
+    {
+      "name": "MOD09GK_TEST_kinesisRul5e",
+      "createdAt": 1538105473704,
+      "workflow": "HelloWorldWorkflow",
+      "provider": "PODAAC_SWOT",
+      "meta": {
+        "cnmResponseStream": "test-src-integration-cnmResponseStream"
+      },
+      "rule": {
+        "type": "onetime",
+        "value": "none"
+      },
+      "collection": {
+        "name": "MOD09GK",
+        "version": "006"
+      },
+      "state": "ENABLED",
+      "updatedAt": 1538105473704
     }
   ]
 }

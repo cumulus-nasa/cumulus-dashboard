@@ -271,3 +271,5 @@ export const TIMER_START = 'TIMER_START';
 export const TIMER_SET_COUNTDOWN = 'TIMER_SET_COUNTDOWN';
 // Sidebar
 export const TOGGLE_SIDEBAR = 'TOGGLE_SIDEBAR';
+// Sorting Mechanism
+export const SORTS = 'SORTS';

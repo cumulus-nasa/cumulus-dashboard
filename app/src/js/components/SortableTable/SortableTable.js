@@ -10,10 +10,11 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import omit from 'lodash/omit';
 import { useTable, useResizeColumns, useFlexLayout, useSortBy, useRowSelect, usePagination } from 'react-table';
+import { useDispatch } from 'react-redux';
 import SimplePagination from '../Pagination/simple-pagination';
 import TableFilters from '../Table/TableFilters';
 import ListFilters from '../ListActions/ListFilters';
-
+import { sortPersist } from '../../actions/index';
 const getColumnWidth = (rows, accessor, headerText, originalWidth) => {
   const maxWidth = 400;
   const magicSpacing = 10;
@@ -143,7 +144,7 @@ const SortableTable = ({
       }
     }
   );
-
+  const dispatch = useDispatch();
   const tableRows = page || rows;
   const includeFilters = typeof getToggleColumnOptions !== 'function';
 
@@ -173,8 +174,9 @@ const SortableTable = ({
   useEffect(() => {
     if (typeof changeSortProps === 'function') {
       changeSortProps(sortBy);
+      dispatch(sortPersist(sortBy));
     }
-  }, [changeSortProps, sortBy]);
+  }, [changeSortProps, dispatch, sortBy]);
 
   useEffect(() => {
     if (typeof getToggleColumnOptions === 'function') {

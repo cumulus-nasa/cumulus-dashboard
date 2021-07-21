@@ -944,3 +944,4 @@ export const filterReconciliationReport = (param) => ({ type: types.FILTER_RECON
 export const clearReconciliationReportFilter = (paramKey) => ({ type: types.CLEAR_RECONCILIATION_FILTER, paramKey });
 
 export const toggleSidebar = () => ({ type: types.TOGGLE_SIDEBAR });
+export const sortPersist = (table, sortBy) => ({ type: types.SORTS, table, sortBy });
